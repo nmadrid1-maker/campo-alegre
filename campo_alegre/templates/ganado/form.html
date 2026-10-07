@@ -1,0 +1,87 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% macro error(campo) -%}
+  {%- if errores.get(campo) %}<div class="invalid-feedback d-block">{{ errores[campo] }}</div>{% endif -%}
+{%- endmacro %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">{{ titulo }}</h2>
+  <p class="text-secondary m-0">Complete la información del animal. Los campos con * son obligatorios.</p>
+</div>
+
+<form class="ca-panel p-3 p-md-4" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <h3 class="h6 mb-3">Información básica</h3>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="identificacion">Identificación *</label>
+      <input class="form-control {{ 'is-invalid' if errores.identificacion }}" id="identificacion" name="identificacion" value="{{ v.identificacion }}" placeholder="Ej: 125" maxlength="20" {{ 'readonly' if editando }} required>
+      {% if editando %}<div class="form-text">La identificación no se cambia para conservar la trazabilidad.</div>{% endif %}
+      {{ error('identificacion') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="nombre">Nombre (opcional)</label>
+      <input class="form-control {{ 'is-invalid' if errores.nombre }}" id="nombre" name="nombre" value="{{ v.nombre }}" placeholder="Ej: Luna" maxlength="40">
+      {{ error('nombre') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="sexo">Sexo *</label>
+      <select class="form-select {{ 'is-invalid' if errores.sexo }}" id="sexo" name="sexo" required>
+        <option value="">Seleccione...</option>
+        {% for s in sexos %}<option value="{{ s }}" {{ 'selected' if v.sexo == s }}>{{ s }}</option>{% endfor %}
+      </select>
+      {{ error('sexo') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="categoria">Categoría *</label>
+      <select class="form-select {{ 'is-invalid' if errores.categoria }}" id="categoria" name="categoria" required>
+        <option value="">Seleccione...</option>
+        {% for sexo, lista in categorias.items() %}
+        <optgroup label="{{ sexo }}">
+          {% for c in lista %}<option value="{{ c }}" {{ 'selected' if v.categoria == c }}>{{ c }}</option>{% endfor %}
+        </optgroup>
+        {% endfor %}
+      </select>
+      {{ error('categoria') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="fecha_nacimiento">Fecha de nacimiento *</label>
+      <input class="form-control {{ 'is-invalid' if errores.fecha_nacimiento }}" id="fecha_nacimiento" name="fecha_nacimiento" type="date" value="{{ v.fecha_nacimiento }}" required>
+      {{ error('fecha_nacimiento') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="fecha_ingreso">Fecha de ingreso *</label>
+      <input class="form-control {{ 'is-invalid' if errores.fecha_ingreso }}" id="fecha_ingreso" name="fecha_ingreso" type="date" value="{{ v.fecha_ingreso }}" required>
+      {{ error('fecha_ingreso') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="procedencia">Procedencia</label>
+      <select class="form-select {{ 'is-invalid' if errores.procedencia }}" id="procedencia" name="procedencia">
+        <option value="">Seleccione...</option>
+        {% for p in procedencias %}<option value="{{ p }}" {{ 'selected' if v.procedencia == p }}>{{ p }}</option>{% endfor %}
+      </select>
+      {{ error('procedencia') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="estado">Estado</label>
+      <select class="form-select {{ 'is-invalid' if errores.estado }}" id="estado" name="estado">
+        {% for e in estados %}<option value="{{ e }}" {{ 'selected' if v.estado == e }}>{{ e }}</option>{% endfor %}
+      </select>
+      {{ error('estado') }}
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="observaciones">Observaciones</label>
+      <textarea class="form-control {{ 'is-invalid' if errores.observaciones }}" id="observaciones" name="observaciones" rows="3" maxlength="500" placeholder="Escriba observaciones adicionales...">{{ v.observaciones }}</textarea>
+      {{ error('observaciones') }}
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a class="btn btn-outline-secondary" href="{{ url_for('ganado.lista') if not editando else url_for('ganado.ficha', identificacion=v.identificacion) }}">Cancelar</a>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit">{{ icono('save', 16) }}{{ 'Guardar cambios' if editando else 'Guardar animal' }}</button>
+  </div>
+</form>
+{% endblock %}

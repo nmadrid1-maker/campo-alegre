@@ -1,0 +1,82 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Animal {{ a.identificacion }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <a class="ca-back" href="{{ url_for('ganado.lista') }}">{{ icono('back', 16) }}Volver al listado</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('ganado.editar', identificacion=a.identificacion) }}">{{ icono('edit', 16) }}Editar información</a>
+    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#modal-eliminar">{{ icono('trash', 16) }}Eliminar</button>
+  </div>
+</div>
+
+<section class="ca-panel p-3 p-md-4">
+  <div class="ca-ficha-head">
+    <div class="ca-photo"><img src="{{ url_for('static', filename='img/vaca.svg') }}" alt="Ilustración de vaca. Aquí irá la foto del animal."></div>
+    <div class="d-flex flex-column gap-1">
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <h2 class="h4 m-0">ID: {{ a.identificacion }}</h2>
+        <span class="ca-pill {{ 'ok' if a.estado == 'Activa' else 'bad' }}">{{ a.estado }}</span>
+      </div>
+      <h3 class="h4 m-0">{{ a.nombre or 'Sin nombre' }}</h3>
+      <div class="text-secondary small">{{ a.sexo }} | {{ a.categoria }}</div>
+      <div class="text-secondary small">Fecha de nacimiento: {{ a.fecha_nacimiento|fecha }}</div>
+      <div class="text-secondary small">Edad: {{ a.fecha_nacimiento|edad }}</div>
+    </div>
+    <dl class="ca-ficha-dl">
+      <dt>Procedencia:</dt><dd>{{ a.procedencia or '—' }}</dd>
+      <dt>Fecha de ingreso:</dt><dd>{{ a.fecha_ingreso|fecha }}</dd>
+      <dt>Peso actual:</dt><dd>— <span class="text-secondary small">(se registra en Control productivo)</span></dd>
+      <dt>Observaciones:</dt><dd>{{ a.observaciones or 'Sin observaciones' }}</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="ca-panel">
+  <ul class="nav nav-tabs px-3 pt-2 ca-tabs" role="tablist">
+    <li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#t-info" type="button" role="tab">Información general</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-san" type="button" role="tab">Control sanitario</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-rep" type="button" role="tab">Eventos reproductivos</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-pes" type="button" role="tab">Pesajes</button></li>
+    <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#t-his" type="button" role="tab">Historial</button></li>
+  </ul>
+  <div class="tab-content p-3 p-md-4">
+    <div class="tab-pane fade show active" id="t-info" role="tabpanel">
+      <h3 class="h6 mb-3">Datos básicos</h3>
+      <dl class="ca-kv">
+        <dt>Identificación</dt><dd>{{ a.identificacion }}</dd>
+        <dt>Nombre</dt><dd>{{ a.nombre or '—' }}</dd>
+        <dt>Sexo</dt><dd>{{ a.sexo }}</dd>
+        <dt>Categoría</dt><dd>{{ a.categoria }}</dd>
+        <dt>Estado</dt><dd>{{ a.estado }}</dd>
+        <dt>Fecha de nacimiento</dt><dd>{{ a.fecha_nacimiento|fecha }}</dd>
+        <dt>Fecha de ingreso</dt><dd>{{ a.fecha_ingreso|fecha }}</dd>
+      </dl>
+    </div>
+    <div class="tab-pane fade" id="t-san" role="tabpanel"><p class="text-secondary m-0">El historial sanitario aparecerá aquí cuando se construya el módulo de Control sanitario.</p></div>
+    <div class="tab-pane fade" id="t-rep" role="tabpanel"><p class="text-secondary m-0">Los eventos reproductivos aparecerán aquí cuando se construya el módulo de Control reproductivo.</p></div>
+    <div class="tab-pane fade" id="t-pes" role="tabpanel"><p class="text-secondary m-0">Los pesajes aparecerán aquí cuando se construya el módulo de Control productivo.</p></div>
+    <div class="tab-pane fade" id="t-his" role="tabpanel"><p class="text-secondary m-0">El historial completo del animal se arma con los demás módulos.</p></div>
+  </div>
+</section>
+
+<div class="modal fade" id="modal-eliminar" tabindex="-1" aria-labelledby="titulo-eliminar" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" action="{{ url_for('ganado.eliminar', identificacion=a.identificacion) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="titulo-eliminar">Eliminar animal {{ a.identificacion }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        Se borrará el registro de {{ a.nombre or 'este animal' }} y no se puede deshacer. Si solo se vendió o murió, es mejor cambiar su estado con “Editar información”.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
