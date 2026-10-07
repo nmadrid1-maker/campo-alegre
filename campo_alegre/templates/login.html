@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Iniciar sesión{% endblock %}
+
+{% block cuerpo %}
+<div class="ca-login">
+  <section class="ca-login-art">
+    <h1>Campo Alegre</h1>
+    <p>Sistema de Información Ganadero</p>
+    <div class="tag">Gestión sencilla para un campo más productivo</div>
+  </section>
+
+  <section class="ca-login-form">
+    <form class="ca-login-card" method="post" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="text-center ca-leaf">{{ icono('leaf', 44) }}</div>
+      <h2 class="text-center h3 m-0 ca-title">Bienvenido</h2>
+      <p class="text-center text-secondary m-0">Inicia sesión para continuar</p>
+
+      {% if error %}
+      <div class="alert alert-danger m-0" role="alert">{{ error }}</div>
+      {% endif %}
+
+      <div>
+        <label class="form-label" for="usuario">Usuario</label>
+        <input class="form-control" id="usuario" name="usuario" autocomplete="username" autofocus required>
+      </div>
+      <div>
+        <label class="form-label" for="clave">Contraseña</label>
+        <div class="input-group">
+          <input class="form-control" id="clave" name="clave" type="password" autocomplete="current-password" required>
+          <button class="btn btn-outline-secondary" type="button" id="ver-clave" aria-label="Mostrar contraseña">{{ icono('eye') }}</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Iniciar sesión</button>
+    </form>
+    <p class="mt-4 mb-0 fst-italic text-secondary small text-center">El campo también se administra con tecnología</p>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var boton = document.getElementById('ver-clave');
+    var campo = document.getElementById('clave');
+    boton.addEventListener('click', function () {
+      var oculto = campo.type === 'password';
+      campo.type = oculto ? 'text' : 'password';
+      boton.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Inicio{% endblock %}
+
+{% block contenido %}
+<section class="ca-hero">
+  <div class="ca-hero-l">
+    <h2 class="h4 m-0">Bienvenido al sistema, {{ usuario.rol }}</h2>
+    <p class="m-0">{% if es_admin %}Aquí puedes gestionar la información de tu ganado de forma fácil y segura.{% else %}Aquí puedes registrar lo que pasa en el campo.{% endif %}</p>
+  </div>
+  <div class="ca-hero-r">
+    <div class="fw-bold">{{ hoy }}</div>
+    <i class="small text-secondary">“Un mejor control, un campo con más futuro”</i>
+  </div>
+</section>
+
+<section class="ca-kpis" aria-label="Resumen del hato">
+  <div class="ca-kpi k1"><span class="t">Total de animales</span><span class="n">{{ total }}</span><span class="s">Activos: {{ activos }}</span></div>
+  <div class="ca-kpi k2"><span class="t">Próximas vacunas</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
+  <div class="ca-kpi k3"><span class="t">Eventos reproductivos</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
+  <div class="ca-kpi k4"><span class="t">Pesajes registrados</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
+</section>
+
+<div class="ca-two">
+  <section class="ca-panel p-3 p-md-4">
+    <h3 class="h6 mb-3">Actividades recientes</h3>
+    {% if actividades %}
+    <ul class="ca-act">
+      {% for a in actividades %}
+      <li><span>{{ a.texto }}</span><time>{{ a.fecha|fecha_hora }}</time></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-secondary m-0">Todavía no hay actividad. Cuando registres animales o eventos, aparecerán aquí.</p>
+    {% endif %}
+  </section>
+
+  <section class="ca-panel p-3 p-md-4">
+    <h3 class="h6 mb-3">Accesos rápidos</h3>
+    <div class="ca-quick">
+      {% if es_admin %}
+      <a href="{{ url_for('ganado.nuevo') }}">{{ icono('cow', 26) }}Registrar animal</a>
+      <a href="{{ url_for('ganado.lista') }}">{{ icono('search', 26) }}Ver ganado</a>
+      {% endif %}
+      <a href="{{ url_for('inicio.sanitario') }}">{{ icono('shield', 26) }}Registrar vacuna</a>
+      <a href="{{ url_for('inicio.productivo') }}">{{ icono('bars', 26) }}Registrar pesaje</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

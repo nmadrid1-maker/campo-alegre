@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from '_iconos.html' import icono %}
+
+{% block cuerpo %}
+<div class="ca-shell">
+  <aside class="ca-side">
+    <div class="ca-brand">{{ icono('cow', 32) }}<span>Campo Alegre</span></div>
+    <nav class="ca-nav" aria-label="Principal">
+      {% for item in menu %}
+      <a href="{{ url_for(item.endpoint) }}"{% if item.activo %} aria-current="page"{% endif %}>{{ icono(item.icono) }}{{ item.etiqueta }}</a>
+      {% endfor %}
+    </nav>
+    <div class="ca-side-user">
+      <div class="ca-avatar">{{ usuario.nombre[:1]|upper }}</div>
+      <div class="flex-grow-1">
+        <div class="nm">{{ usuario.nombre }}</div>
+        <div class="rl">{{ usuario.rol }}</div>
+      </div>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="ca-logout" type="submit" title="Cerrar sesión" aria-label="Cerrar sesión">{{ icono('logout') }}</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="ca-main">
+    <header class="ca-top">
+      <div>
+        <div class="fw-bold">Finca Campo Alegre</div>
+        <div class="small text-secondary">Sistema de Información Ganadero</div>
+      </div>
+      <div class="small text-secondary">{{ usuario.nombre }} · {{ usuario.rol }}</div>
+    </header>
+
+    <main class="ca-content">
+      {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensaje in mensajes %}
+        <div class="alert alert-{{ categoria }} alert-dismissible mb-0" role="alert">
+          {{ mensaje }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
+        </div>
+        {% endfor %}
+      {% endwith %}
+      {% block contenido %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endblock %}

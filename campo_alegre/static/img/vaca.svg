@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Ilustración de vaca">
+<ellipse cx="22" cy="46" rx="14" ry="8" fill="#d9a07a" transform="rotate(-25 22 46)"/>
+<ellipse cx="98" cy="46" rx="14" ry="8" fill="#d9a07a" transform="rotate(25 98 46)"/>
+<path d="M38 22c4-8 14-12 22-12s18 4 22 12" fill="none" stroke="#e8e2d3" stroke-width="7" stroke-linecap="round"/>
+<path d="M32 36c0-14 12-22 28-22s28 8 28 22v28c0 24-12 40-28 40S32 88 32 64z" fill="#fbf8f0"/>
+<path d="M32 36c0-10 6-17 15-20-4 10-3 22-1 34-6 0-14-4-14-14z" fill="#8a5a3c"/>
+<path d="M74 24c9 3 14 10 14 18 0 6-3 10-8 10 2-9 1-20-6-28z" fill="#8a5a3c"/>
+<ellipse cx="60" cy="86" rx="22" ry="16" fill="#f0b7b0"/>
+<ellipse cx="51" cy="86" rx="3.2" ry="4.2" fill="#9b5a55"/>
+<ellipse cx="69" cy="86" rx="3.2" ry="4.2" fill="#9b5a55"/>
+<circle cx="46" cy="54" r="4.2" fill="#2a1d17"/>
+<circle cx="74" cy="54" r="4.2" fill="#2a1d17"/>
+<circle cx="47.2" cy="52.8" r="1.2" fill="#fff"/>
+<circle cx="75.2" cy="52.8" r="1.2" fill="#fff"/>
+</svg>

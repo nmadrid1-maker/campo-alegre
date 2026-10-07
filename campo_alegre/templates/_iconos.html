@@ -1,0 +1,22 @@
+{% macro icono(nombre, tam=18) -%}
+{%- set trazos = {
+  'home': '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/>',
+  'cow': '<path d="M4 9l-2-3 4 1M20 9l2-3-4 1"/><path d="M5 8c0-2 3-3 7-3s7 1 7 3v4c0 4-3 7-7 7s-7-3-7-7z"/><circle cx="9" cy="11" r=".8" fill="currentColor"/><circle cx="15" cy="11" r=".8" fill="currentColor"/><path d="M9 16h6"/>',
+  'shield': '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  'heart': '<path d="M12 21s-8-5.5-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 5.5-8 11-8 11z"/>',
+  'bars': '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  'doc': '<path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/>',
+  'users': '<circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M16 4.5a3.5 3.5 0 010 7M18 15c3 .6 4 2.6 4 6"/>',
+  'gear': '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 00-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 000 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 002 1.2l.4 2.6h4l.4-2.6a7 7 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/>',
+  'search': '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  'plus': '<path d="M12 5v14M5 12h14"/>',
+  'eye': '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  'edit': '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+  'trash': '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  'save': '<path d="M5 3h12l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',
+  'back': '<path d="M15 6l-6 6 6 6"/>',
+  'logout': '<path d="M10 4H5v16h5"/><path d="M15 8l4 4-4 4M19 12H9"/>',
+  'leaf': '<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/>'
+} -%}
+<svg width="{{ tam }}" height="{{ tam }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{{ trazos[nombre]|safe }}</svg>
+{%- endmacro %}
