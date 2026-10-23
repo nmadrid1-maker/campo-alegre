@@ -1,0 +1,61 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Registrar pesaje{% endblock %}
+
+{% macro error(campo) -%}
+  {%- if errores.get(campo) %}<div class="invalid-feedback d-block">{{ errores[campo] }}</div>{% endif -%}
+{%- endmacro %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Registrar pesaje</h2>
+  <p class="text-secondary m-0">Registre el peso de un animal. Los campos con * son obligatorios.</p>
+</div>
+
+<form class="ca-panel p-3 p-md-4" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-12">
+      <label class="form-label" for="animal">Animal *</label>
+      <input class="form-control {{ 'is-invalid' if errores.animal }}" id="animal" name="animal" value="{{ v.animal }}" list="lista-animales" placeholder="Escriba o elija la identificación. Ej: 125" autocomplete="off" maxlength="20" required>
+      <datalist id="lista-animales">
+        {% for a in animales %}<option value="{{ a.identificacion }}" label="{{ a.nombre or 'Sin nombre' }} · {{ a.categoria }}"></option>{% endfor %}
+      </datalist>
+      {{ error('animal') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="fecha">Fecha del pesaje *</label>
+      <input class="form-control {{ 'is-invalid' if errores.fecha }}" id="fecha" name="fecha" type="date" value="{{ v.fecha }}" required>
+      {{ error('fecha') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="peso_kg">Peso (kg) *</label>
+      <input class="form-control {{ 'is-invalid' if errores.peso_kg }}" id="peso_kg" name="peso_kg" value="{{ v.peso_kg }}" inputmode="decimal" placeholder="Ej: 420,5" maxlength="6" required>
+      <div class="form-text">Entre {{ peso_min }} y {{ peso_max }} kg.</div>
+      {{ error('peso_kg') }}
+    </div>
+    <div class="col-12">
+      <span class="form-label d-block" id="etiqueta-tipo-peso">¿Cómo se obtuvo el peso? *</span>
+      <div class="d-flex flex-wrap gap-4 py-1" role="radiogroup" aria-labelledby="etiqueta-tipo-peso">
+        {% for t in tipos_peso %}
+        <div class="form-check">
+          <input class="form-check-input {{ 'is-invalid' if errores.tipo_peso }}" type="radio" name="tipo_peso" id="tipo-peso-{{ loop.index }}" value="{{ t }}" {{ 'checked' if v.tipo_peso == t }}>
+          <label class="form-check-label" for="tipo-peso-{{ loop.index }}">{{ t }} <span class="text-secondary small">{{ '(báscula)' if t == 'Medido' else '(a ojo o con cinta)' }}</span></label>
+        </div>
+        {% endfor %}
+      </div>
+      {{ error('tipo_peso') }}
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="observaciones">Observaciones</label>
+      <textarea class="form-control {{ 'is-invalid' if errores.observaciones }}" id="observaciones" name="observaciones" rows="3" maxlength="500" placeholder="Escriba observaciones...">{{ v.observaciones }}</textarea>
+      {{ error('observaciones') }}
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a class="btn btn-outline-secondary" href="{{ url_for('productivo.lista') }}">Cancelar</a>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit">{{ icono('save', 16) }}Guardar pesaje</button>
+  </div>
+</form>
+{% endblock %}

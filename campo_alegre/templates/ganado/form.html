@@ -66,12 +66,51 @@
       {{ error('procedencia') }}
     </div>
     <div class="col-12 col-md-6">
+      <label class="form-label" for="potrero">Potrero</label>
+      <select class="form-select {{ 'is-invalid' if errores.potrero }}" id="potrero" name="potrero">
+        <option value="">Sin potrero</option>
+        {% for p in potreros %}<option value="{{ p }}" {{ 'selected' if v.potrero == p }}>{{ p }}</option>{% endfor %}
+      </select>
+      {% if editando %}<div class="form-text">Si lo cambia, queda registrado el traslado con la fecha de hoy.</div>{% endif %}
+      {{ error('potrero') }}
+    </div>
+    <div class="col-12 col-md-6">
       <label class="form-label" for="estado">Estado</label>
       <select class="form-select {{ 'is-invalid' if errores.estado }}" id="estado" name="estado">
         {% for e in estados %}<option value="{{ e }}" {{ 'selected' if v.estado == e }}>{{ e }}</option>{% endfor %}
       </select>
       {{ error('estado') }}
     </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="madre">Madre (opcional)</label>
+      <input class="form-control {{ 'is-invalid' if errores.madre }}" id="madre" name="madre" value="{{ v.madre }}" maxlength="20" placeholder="Identificación de la madre, si nació en la finca">
+      {{ error('madre') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="marca">Marca / hierro (opcional)</label>
+      <input class="form-control {{ 'is-invalid' if errores.marca }}" id="marca" name="marca" value="{{ v.marca }}" maxlength="40" placeholder="Ej: hierro de la finca">
+      {{ error('marca') }}
+    </div>
+    {% if not editando %}
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="peso_kg">Peso actual en kg (opcional)</label>
+      <input class="form-control {{ 'is-invalid' if errores.peso_kg }}" id="peso_kg" name="peso_kg" value="{{ v.peso_kg }}" inputmode="decimal" maxlength="6" placeholder="Ej: 420,5">
+      <div class="form-text">Entre {{ peso_min }} y {{ peso_max }} kg. Se guarda como el primer pesaje, con la fecha de hoy.</div>
+      {{ error('peso_kg') }}
+    </div>
+    <div class="col-12 col-md-6">
+      <span class="form-label d-block" id="etiqueta-tipo-peso">¿Cómo se obtuvo el peso?</span>
+      <div class="d-flex flex-wrap gap-4 py-1" role="radiogroup" aria-labelledby="etiqueta-tipo-peso">
+        {% for t in tipos_peso %}
+        <div class="form-check">
+          <input class="form-check-input {{ 'is-invalid' if errores.tipo_peso }}" type="radio" name="tipo_peso" id="tipo-peso-{{ loop.index }}" value="{{ t }}" {{ 'checked' if v.tipo_peso == t }}>
+          <label class="form-check-label" for="tipo-peso-{{ loop.index }}">{{ t }} <span class="text-secondary small">{{ '(báscula)' if t == 'Medido' else '(a ojo o con cinta)' }}</span></label>
+        </div>
+        {% endfor %}
+      </div>
+      {{ error('tipo_peso') }}
+    </div>
+    {% endif %}
     <div class="col-12">
       <label class="form-label" for="observaciones">Observaciones</label>
       <textarea class="form-control {{ 'is-invalid' if errores.observaciones }}" id="observaciones" name="observaciones" rows="3" maxlength="500" placeholder="Escriba observaciones adicionales...">{{ v.observaciones }}</textarea>

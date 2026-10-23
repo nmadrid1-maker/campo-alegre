@@ -3,10 +3,13 @@
 {% block titulo %}Inicio{% endblock %}
 
 {% block contenido %}
+{% if aviso_respaldo %}
+<div class="alert alert-warning mb-0" role="status">{{ aviso_respaldo }} <a href="{{ url_for('respaldos.lista') }}">Ir a Respaldos</a></div>
+{% endif %}
 <section class="ca-hero">
   <div class="ca-hero-l">
     <h2 class="h4 m-0">Bienvenido al sistema, {{ usuario.rol }}</h2>
-    <p class="m-0">{% if es_admin %}Aquí puedes gestionar la información de tu ganado de forma fácil y segura.{% else %}Aquí puedes registrar lo que pasa en el campo.{% endif %}</p>
+    <p class="m-0">{% if es_admin %}Aquí puedes gestionar la información de tu ganado de forma fácil y segura.{% else %}Aquí puedes consultar la información del ganado.{% endif %}</p>
   </div>
   <div class="ca-hero-r">
     <div class="fw-bold">{{ hoy }}</div>
@@ -16,9 +19,9 @@
 
 <section class="ca-kpis" aria-label="Resumen del hato">
   <div class="ca-kpi k1"><span class="t">Total de animales</span><span class="n">{{ total }}</span><span class="s">Activos: {{ activos }}</span></div>
-  <div class="ca-kpi k2"><span class="t">Próximas vacunas</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
-  <div class="ca-kpi k3"><span class="t">Eventos reproductivos</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
-  <div class="ca-kpi k4"><span class="t">Pesajes registrados</span><span class="n">—</span><span class="s">Módulo en construcción</span></div>
+  <div class="ca-kpi k2"><span class="t">Próximas vacunas</span><span class="n">{{ proximas_vacunas }}</span><span class="s">En los próximos 30 días</span></div>
+  <div class="ca-kpi k3"><span class="t">Eventos reproductivos (30 días)</span><span class="n">{{ eventos_repro }}</span><span class="s">Partos probables: {{ partos_probables }}</span></div>
+  <div class="ca-kpi k4"><span class="t">Pesajes registrados</span><span class="n">{{ pesajes_mes }}</span><span class="s">Este mes</span></div>
 </section>
 
 <div class="ca-two">
@@ -40,10 +43,15 @@
     <div class="ca-quick">
       {% if es_admin %}
       <a href="{{ url_for('ganado.nuevo') }}">{{ icono('cow', 26) }}Registrar animal</a>
-      <a href="{{ url_for('ganado.lista') }}">{{ icono('search', 26) }}Ver ganado</a>
+      <a href="{{ url_for('sanitario.nuevo') }}">{{ icono('shield', 26) }}Registrar vacuna</a>
+      <a href="{{ url_for('reproductivo.nuevo') }}">{{ icono('heart', 26) }}Evento reproductivo</a>
+      <a href="{{ url_for('productivo.nuevo') }}">{{ icono('bars', 26) }}Registrar pesaje</a>
+      {% else %}
+      <a href="{{ url_for('ganado.lista') }}">{{ icono('cow', 26) }}Ver ganado</a>
+      <a href="{{ url_for('potreros.lista') }}">{{ icono('leaf', 26) }}Ver potreros</a>
+      <a href="{{ url_for('sanitario.lista') }}">{{ icono('shield', 26) }}Control sanitario</a>
+      <a href="{{ url_for('informes.indice') }}">{{ icono('doc', 26) }}Ver informes</a>
       {% endif %}
-      <a href="{{ url_for('inicio.sanitario') }}">{{ icono('shield', 26) }}Registrar vacuna</a>
-      <a href="{{ url_for('inicio.productivo') }}">{{ icono('bars', 26) }}Registrar pesaje</a>
     </div>
   </section>
 </div>

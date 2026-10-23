@@ -1,0 +1,121 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Informe: {{ meta.titulo }}{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+  <div>
+    <a class="ca-back d-print-none" href="{{ url_for('informes.indice') }}">{{ icono('back', 16) }}Todos los informes</a>
+    <h2 class="h4 m-0 ca-title">{{ meta.titulo }}</h2>
+    <p class="text-secondary m-0">{{ meta.descripcion }}</p>
+    <p class="text-secondary small m-0 d-none d-print-block">Finca Campo Alegre · Generado el {{ generado|fecha_hora }}</p>
+  </div>
+  <div class="d-flex gap-2 d-print-none">
+    <a class="btn btn-outline-secondary" href="{{ exportar }}">Exportar a Excel (CSV)</a>
+    <button class="btn btn-outline-secondary" type="button" onclick="window.print()">Imprimir</button>
+  </div>
+</div>
+
+<form class="ca-panel p-3 d-print-none" method="get">
+  <div class="row g-2 align-items-end">
+    {% if 'desde' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="desde">Desde</label>
+      <input class="form-control" type="date" id="desde" name="desde" value="{{ v.desde }}">
+    </div>
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="hasta">Hasta</label>
+      <input class="form-control" type="date" id="hasta" name="hasta" value="{{ v.hasta }}">
+    </div>
+    {% endif %}
+    {% if 'sexo' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="sexo">Sexo</label>
+      <select class="form-select" id="sexo" name="sexo"><option value="">Todos</option>
+        {% for s in sexos %}<option value="{{ s }}" {{ 'selected' if v.sexo == s }}>{{ s }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'categoria' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="categoria">Categoría</label>
+      <select class="form-select" id="categoria" name="categoria"><option value="">Todas</option>
+        {% for c in categorias %}<option value="{{ c }}" {{ 'selected' if v.categoria == c }}>{{ c }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'estado' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="estado">Estado</label>
+      <select class="form-select" id="estado" name="estado"><option value="">Todos</option>
+        {% for e in estados %}<option value="{{ e }}" {{ 'selected' if v.estado == e }}>{{ e }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'potrero' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="potrero">Potrero</label>
+      <select class="form-select" id="potrero" name="potrero"><option value="">Todos</option>
+        {% for p in potreros %}<option value="{{ p }}" {{ 'selected' if v.potrero == p }}>{{ p }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'estado_repro' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="estado_repro">Estado actual de la hembra</label>
+      <select class="form-select" id="estado_repro" name="estado_repro"><option value="">Todos</option>
+        {% for e in estados_repro %}<option value="{{ e }}" {{ 'selected' if v.estado_repro == e }}>{{ e }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'peso_min' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="peso_min">Peso desde (kg)</label>
+      <input class="form-control" id="peso_min" name="peso_min" value="{{ v.peso_min }}" inputmode="decimal" maxlength="7" placeholder="Ej: 350">
+    </div>
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="peso_max">Peso hasta (kg)</label>
+      <input class="form-control" id="peso_max" name="peso_max" value="{{ v.peso_max }}" inputmode="decimal" maxlength="7" placeholder="Ej: 450">
+    </div>
+    {% endif %}
+    {% if 'tipo' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="tipo">Tipo</label>
+      <select class="form-select" id="tipo" name="tipo"><option value="">Todos</option>
+        {% for t in tipos %}<option value="{{ t }}" {{ 'selected' if v.tipo == t }}>{{ t }}</option>{% endfor %}</select>
+    </div>
+    {% endif %}
+    {% if 'animal' in meta.filtros %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <label class="form-label small" for="animal">Animal</label>
+      <input class="form-control" id="animal" name="animal" value="{{ v.animal }}" placeholder="Ej: 125" maxlength="20">
+    </div>
+    {% endif %}
+    <div class="col-12 col-md-auto d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Generar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('informes.ver', tipo=tipo) }}">Limpiar</a>
+    </div>
+  </div>
+</form>
+
+<section class="ca-panel p-3 p-md-4" aria-label="Resumen">
+  <h3 class="h6 mb-3">Resumen</h3>
+  <ul class="ca-act">
+    {% for etiqueta, valor in resumen %}<li><span>{{ etiqueta }}</span><strong>{{ valor }}</strong></li>{% endfor %}
+  </ul>
+</section>
+
+<section class="ca-panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 ca-table">
+      <thead><tr>{% for c in columnas %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for fila in filas %}
+        <tr>{% for celda in fila %}<td>{{ celda if celda != '' else '—' }}</td>{% endfor %}</tr>
+        {% else %}
+        <tr><td colspan="{{ columnas|length }}" class="text-center text-secondary py-4">No hay datos para los filtros elegidos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="small text-secondary p-3 m-0">
+    {{ total }} {{ 'fila' if total == 1 else 'filas' }}.
+    {% if recortado %}En pantalla se muestran las primeras {{ max_pantalla }}; el archivo CSV trae todas.{% endif %}
+  </p>
+</section>
+{% endblock %}

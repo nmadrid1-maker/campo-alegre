@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Cambiar contraseña{% endblock %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Cambiar contraseña</h2>
+  <p class="text-secondary m-0">Usuario: <strong>{{ usuario.usuario }}</strong> · {{ usuario.nombre }}</p>
+</div>
+
+<form class="ca-panel p-3 p-md-4" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="clave">Nueva contraseña *</label>
+      <input class="form-control {{ 'is-invalid' if error }}" id="clave" name="clave" type="password" autocomplete="new-password" maxlength="128" required>
+      <div class="form-text">Mínimo 8 caracteres.</div>
+      {% if error %}<div class="invalid-feedback d-block">{{ error }}</div>{% endif %}
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="confirmacion">Confirmar contraseña *</label>
+      <input class="form-control" id="confirmacion" name="confirmacion" type="password" autocomplete="new-password" maxlength="128" required>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a class="btn btn-outline-secondary" href="{{ url_for('usuarios.lista') }}">Cancelar</a>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit">{{ icono('save', 16) }}Guardar contraseña</button>
+  </div>
+</form>
+{% endblock %}

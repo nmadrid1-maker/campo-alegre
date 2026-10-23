@@ -42,8 +42,24 @@ def fecha_larga(valor=None):
     return f"{DIAS[valor.weekday()].capitalize()} {valor.day} de {MESES[valor.month - 1]} de {valor.year}"
 
 
+def kg(valor):
+    """420.0 -> '420 kg'; 420.5 -> '420,5 kg'."""
+    if valor is None:
+        return "—"
+    return f"{valor:.1f}".rstrip("0").rstrip(".").replace(".", ",") + " kg"
+
+
+def cambio_kg(valor):
+    """Cambio de peso con signo: +8 kg, -1,5 kg."""
+    if valor is None:
+        return "—"
+    return f"{valor:+.1f}".rstrip("0").rstrip(".").replace(".", ",") + " kg"
+
+
 def registrar_filtros(app):
     app.jinja_env.filters["fecha"] = fecha
     app.jinja_env.filters["fecha_hora"] = fecha_hora
     app.jinja_env.filters["fecha_input"] = fecha_input
     app.jinja_env.filters["edad"] = edad
+    app.jinja_env.filters["kg"] = kg
+    app.jinja_env.filters["cambio_kg"] = cambio_kg

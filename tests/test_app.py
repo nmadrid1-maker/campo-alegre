@@ -4,50 +4,9 @@ Ejecutar:  py -m unittest discover -s tests -v
 """
 import unittest
 
-from campo_alegre import create_app
+from base import CLAVE_ADMIN, CLAVE_EMPLEADO, BaseTest
 from campo_alegre.db import get_db
-from campo_alegre.semilla import crear_animales_ejemplo, crear_usuarios
-
-CLAVE_ADMIN = "clave-admin-de-prueba"
-CLAVE_EMPLEADO = "clave-empleado-de-prueba"
-
-
-class BaseTest(unittest.TestCase):
-    def setUp(self):
-        self.app = create_app({"USE_MOCK_DB": True, "TESTING": True, "SECRET_KEY": "prueba"})
-        with self.app.app_context():
-            crear_usuarios(get_db(), CLAVE_ADMIN, CLAVE_EMPLEADO)
-        self.client = self.app.test_client()
-
-    def post(self, url, datos=None, token="tok"):
-        """POST con el token CSRF válido en la sesión."""
-        with self.client.session_transaction() as s:
-            s["_csrf"] = token
-        datos = dict(datos or {})
-        datos["_csrf"] = token
-        return self.client.post(url, data=datos)
-
-    def entrar(self, usuario="admin", clave=CLAVE_ADMIN):
-        return self.post("/login", {"usuario": usuario, "clave": clave})
-
-    def animal_valido(self, **cambios):
-        datos = {
-            "identificacion": "301",
-            "nombre": "Prueba",
-            "sexo": "Hembra",
-            "categoria": "Vaca",
-            "fecha_nacimiento": "2022-05-10",
-            "fecha_ingreso": "2022-06-01",
-            "procedencia": "Compra",
-            "estado": "Activa",
-            "observaciones": "",
-        }
-        datos.update(cambios)
-        return datos
-
-    def contar(self, filtro=None):
-        with self.app.app_context():
-            return get_db().animales.count_documents(filtro or {})
+from campo_alegre.semilla import crear_animales_ejemplo
 
 
 class PruebasAutenticacion(BaseTest):
@@ -85,32 +44,43 @@ class PruebasAutenticacion(BaseTest):
 
 
 class PruebasRoles(BaseTest):
-    def test_empleado_no_entra_a_ganado(self):
+    def test_empleado_consulta_ganado_sin_botones_de_edicion(self):
         self.entrar("empleado", CLAVE_EMPLEADO)
-        r = self.client.get("/ganado/")
-        self.assertEqual(r.status_code, 302)
-        self.assertIn("/inicio", r.headers["Location"])
+        self.post("/logout")
+        self.entrar()
+        self.post("/ganado/nuevo", self.animal_valido())
+        self.post("/logout")
+        self.entrar("empleado", CLAVE_EMPLEADO)
+        lista = self.client.get("/ganado/")
+        self.assertEqual(lista.status_code, 200)
+        ficha = self.client.get("/ganado/301")
+        self.assertEqual(ficha.status_code, 200)
+        self.assertIn("Prueba", ficha.get_data(as_text=True))
+        for html in (lista.get_data(as_text=True), ficha.get_data(as_text=True)):
+            for texto in ("Registrar animal", "Editar", "Eliminar"):
+                self.assertNotIn(texto, html)
 
     def test_empleado_no_puede_crear_animales(self):
         self.entrar("empleado", CLAVE_EMPLEADO)
         self.post("/ganado/nuevo", self.animal_valido())
         self.assertEqual(self.contar(), 0)
 
-    def test_empleado_ve_control_sanitario_pero_no_informes(self):
+    def test_empleado_no_ve_usuarios(self):
         self.entrar("empleado", CLAVE_EMPLEADO)
-        self.assertEqual(self.client.get("/sanitario").status_code, 200)
-        self.assertEqual(self.client.get("/informes").status_code, 302)
+        self.assertEqual(self.client.get("/usuarios/").status_code, 302)
 
-    def test_menu_del_empleado_no_muestra_ganado(self):
+    def test_menu_del_empleado_solo_tiene_consultas(self):
         self.entrar("empleado", CLAVE_EMPLEADO)
         html = self.client.get("/inicio").get_data(as_text=True)
-        self.assertNotIn('href="/ganado/"', html)
-        self.assertIn('href="/sanitario"', html)
+        for ruta in ("/ganado/", "/potreros/", "/sanitario/", "/reproductivo/", "/productivo/", "/informes/"):
+            self.assertIn(f'href="{ruta}"', html)
+        self.assertNotIn('href="/usuarios/"', html)
+        self.assertNotIn("/nuevo", html)
 
     def test_admin_ve_todo(self):
         self.entrar()
-        for ruta in ("/inicio", "/ganado/", "/sanitario", "/reproductivo", "/productivo",
-                     "/informes", "/usuarios", "/configuracion"):
+        for ruta in ("/inicio", "/ganado/", "/sanitario/", "/sanitario/nuevo", "/reproductivo/", "/reproductivo/nuevo",
+                     "/productivo/", "/productivo/nuevo", "/informes/", "/informes/inventario", "/usuarios/", "/usuarios/nuevo"):
             self.assertEqual(self.client.get(ruta).status_code, 200, ruta)
 
 

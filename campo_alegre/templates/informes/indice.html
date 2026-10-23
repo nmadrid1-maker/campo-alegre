@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Informes{% endblock %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Informes</h2>
+  <p class="text-secondary m-0">Elija un informe, filtre lo que necesite y expórtelo a Excel (CSV) o imprímalo.</p>
+</div>
+<div class="row g-3">
+  {% for clave, i in informes.items() %}
+  <div class="col-12 col-md-6">
+    <a class="ca-panel p-3 p-md-4 d-flex gap-3 align-items-start text-decoration-none h-100" href="{{ url_for('informes.ver', tipo=clave) }}">
+      <span class="ca-leaf">{{ icono('doc', 30) }}</span>
+      <span>
+        <span class="d-block h6 mb-1">{{ i.titulo }}</span>
+        <span class="d-block text-secondary small">{{ i.descripcion }}</span>
+      </span>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import current_app
-from pymongo import ASCENDING, MongoClient
+from pymongo import ASCENDING, DESCENDING, MongoClient
 from pymongo.errors import ServerSelectionTimeoutError
 
 
@@ -20,6 +20,14 @@ def init_db(app):
     try:
         db.usuarios.create_index([("usuario", ASCENDING)], unique=True)
         db.animales.create_index([("identificacion", ASCENDING)], unique=True)
+        db.eventos_sanitarios.create_index([("animal", ASCENDING), ("fecha_aplicacion", DESCENDING)])
+        db.eventos_sanitarios.create_index([("proxima_dosis", ASCENDING)])
+        db.eventos_reproductivos.create_index([("animal", ASCENDING), ("fecha", DESCENDING)])
+        db.eventos_reproductivos.create_index([("parto_probable", ASCENDING)])
+        db.movimientos.create_index([("animal", ASCENDING), ("fecha", DESCENDING)])
+        db.potreros.create_index([("nombre_lower", ASCENDING)], unique=True)
+        db.traslados.create_index([("animal", ASCENDING), ("fecha", DESCENDING)])
+        db.pesajes.create_index([("animal", ASCENDING), ("fecha", ASCENDING)], unique=True)
     except ServerSelectionTimeoutError as exc:
         raise RuntimeError(
             "No se pudo conectar a MongoDB en "

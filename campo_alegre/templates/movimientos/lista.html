@@ -1,0 +1,75 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Movimientos{% endblock %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Movimientos</h2>
+  <p class="text-secondary m-0">Nacimientos, entradas, salidas y novedades del hato.</p>
+</div>
+
+<div class="d-flex flex-wrap gap-2">
+  <form class="d-flex flex-grow-1 flex-wrap gap-2 align-items-center" method="get" role="search">
+    <label class="visually-hidden" for="q">Animal</label>
+    <input class="form-control" style="min-width: 160px; width: auto;" id="q" name="q" value="{{ q }}" placeholder="Animal...">
+    <label class="visually-hidden" for="tipo">Tipo</label>
+    <select class="form-select w-auto" id="tipo" name="tipo">
+      <option value="">Todos los tipos</option>
+      {% for t in tipos %}<option value="{{ t }}" {{ 'selected' if tipo == t }}>{{ t }}</option>{% endfor %}
+    </select>
+    <label class="small text-secondary" for="desde">Desde</label>
+    <input class="form-control w-auto" type="date" id="desde" name="desde" value="{{ desde }}">
+    <label class="small text-secondary" for="hasta">Hasta</label>
+    <input class="form-control w-auto" type="date" id="hasta" name="hasta" value="{{ hasta }}">
+    <button class="btn btn-primary" type="submit" aria-label="Filtrar">{{ icono('search') }}</button>
+  </form>
+  {% if es_admin %}
+  <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('movimientos.salida') }}">{{ icono('swap', 16) }}Registrar salida</a>
+  <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" href="{{ url_for('movimientos.novedad') }}">{{ icono('plus', 16) }}Novedad</a>
+  {% endif %}
+</div>
+
+<section class="ca-panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 ca-table">
+      <thead><tr><th>Fecha</th><th>Tipo</th><th>Animal</th><th>Detalle</th><th>Registró</th>{% if es_admin %}<th>Acciones</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for m in filas %}
+        <tr>
+          <td class="text-nowrap">{{ m.fecha|fecha }}</td>
+          <td><span class="ca-pill {{ 'bad' if m.tipo == 'Salida' else 'ok' if m.tipo in ('Nacimiento', 'Entrada') else 'warn' }}">{{ m.tipo }}</span></td>
+          <td class="text-nowrap"><a href="{{ url_for('ganado.ficha', identificacion=m.animal) }}">{{ m.animal }}</a>{% if nombres.get(m.animal) %} <span class="text-secondary">· {{ nombres[m.animal] }}</span>{% endif %}</td>
+          <td>{{ detalle(m) or '—' }}</td>
+          <td class="text-secondary">{{ m.registrado_por or '—' }}</td>
+          {% if es_admin %}
+          <td class="text-nowrap">
+            {% if m.tipo in ('Salida', 'Novedad') %}
+            <form method="post" action="{{ url_for('movimientos.eliminar', movimiento_id=m._id|string) }}" onsubmit="return confirm('¿Eliminar este movimiento? Úselo solo para corregir un error.');">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" type="submit">{{ icono('trash', 15) }}Eliminar</button>
+            </form>
+            {% else %}<span class="text-secondary small">Automático</span>{% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ 6 if es_admin else 5 }}" class="text-center text-secondary py-4">
+          {% if q or tipo or desde or hasta %}Ningún movimiento coincide con los filtros.{% else %}Aún no hay movimientos.{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
+    <span class="small text-secondary">Mostrando {{ inicio + 1 if total else 0 }} a {{ [inicio + filas|length, total]|min }} de {{ total }} movimientos</span>
+    {% if paginas > 1 %}
+    <nav aria-label="Páginas del listado"><ul class="pagination pagination-sm mb-0">
+      <li class="page-item {{ 'disabled' if pagina == 1 }}"><a class="page-link" href="{{ url_for('movimientos.lista', page=pagina - 1, q=q or None, tipo=tipo or None, desde=desde or None, hasta=hasta or None) }}" aria-label="Página anterior">&laquo;</a></li>
+      {% for n in numeros %}{% if n is none %}<li class="page-item disabled"><span class="page-link">…</span></li>{% else %}
+      <li class="page-item {{ 'active' if n == pagina }}"><a class="page-link" href="{{ url_for('movimientos.lista', page=n, q=q or None, tipo=tipo or None, desde=desde or None, hasta=hasta or None) }}">{{ n }}</a></li>{% endif %}{% endfor %}
+      <li class="page-item {{ 'disabled' if pagina == paginas }}"><a class="page-link" href="{{ url_for('movimientos.lista', page=pagina + 1, q=q or None, tipo=tipo or None, desde=desde or None, hasta=hasta or None) }}" aria-label="Página siguiente">&raquo;</a></li>
+    </ul></nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

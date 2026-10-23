@@ -5,10 +5,14 @@
 {% block contenido %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
   <a class="ca-back" href="{{ url_for('ganado.lista') }}">{{ icono('back', 16) }}Volver al listado</a>
+  {% if es_admin %}
   <div class="d-flex gap-2">
+    {% if a.estado == 'Activa' %}<a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" href="{{ url_for('movimientos.salida', animal=a.identificacion) }}">{{ icono('swap', 16) }}Registrar salida</a>{% endif %}
+    <a class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" href="{{ url_for('movimientos.novedad', animal=a.identificacion) }}">{{ icono('plus', 16) }}Novedad</a>
     <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('ganado.editar', identificacion=a.identificacion) }}">{{ icono('edit', 16) }}Editar información</a>
     <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#modal-eliminar">{{ icono('trash', 16) }}Eliminar</button>
   </div>
+  {% endif %}
 </div>
 
 <section class="ca-panel p-3 p-md-4">
@@ -27,7 +31,12 @@
     <dl class="ca-ficha-dl">
       <dt>Procedencia:</dt><dd>{{ a.procedencia or '—' }}</dd>
       <dt>Fecha de ingreso:</dt><dd>{{ a.fecha_ingreso|fecha }}</dd>
-      <dt>Peso actual:</dt><dd>— <span class="text-secondary small">(se registra en Control productivo)</span></dd>
+      {% if estado_repro %}<dt>Estado reproductivo:</dt><dd>{{ estado_repro.estado }}{% if estado_repro.estado == 'Gestante' %} <span class="text-secondary small">({% if estado_repro.parto_estimado %}parto estimado {{ estado_repro.parto_estimado|fecha }}{% else %}fecha de parto desconocida{% endif %})</span>{% endif %}</dd>{% endif %}
+      <dt>Madre:</dt><dd>{% if a.madre %}<a href="{{ url_for('ganado.ficha', identificacion=a.madre) }}">{{ a.madre }}</a>{% else %}—{% endif %}</dd>
+      {% if crias %}<dt>Crías:</dt><dd>{% for c in crias %}<a href="{{ url_for('ganado.ficha', identificacion=c.identificacion) }}">{{ c.identificacion }}</a>{{ ', ' if not loop.last }}{% endfor %}</dd>{% endif %}
+      <dt>Marca:</dt><dd>{{ a.marca or '—' }}</dd>
+      <dt>Potrero:</dt><dd>{{ a.potrero or '—' }}</dd>
+      <dt>Peso actual:</dt><dd>{% if peso_actual %}{{ peso_actual.peso_kg|kg }}{% if peso_actual.tipo_peso == 'Estimado' %} <span class="ca-pill warn">estimado</span>{% endif %} <span class="text-secondary small">({{ peso_actual.fecha|fecha }})</span>{% else %}— <span class="text-secondary small">(se registra en Control productivo)</span>{% endif %}</dd>
       <dt>Observaciones:</dt><dd>{{ a.observaciones or 'Sin observaciones' }}</dd>
     </dl>
   </div>
@@ -50,17 +59,120 @@
         <dt>Sexo</dt><dd>{{ a.sexo }}</dd>
         <dt>Categoría</dt><dd>{{ a.categoria }}</dd>
         <dt>Estado</dt><dd>{{ a.estado }}</dd>
+        <dt>Potrero</dt><dd>{{ a.potrero or '—' }}</dd>
         <dt>Fecha de nacimiento</dt><dd>{{ a.fecha_nacimiento|fecha }}</dd>
         <dt>Fecha de ingreso</dt><dd>{{ a.fecha_ingreso|fecha }}</dd>
       </dl>
     </div>
-    <div class="tab-pane fade" id="t-san" role="tabpanel"><p class="text-secondary m-0">El historial sanitario aparecerá aquí cuando se construya el módulo de Control sanitario.</p></div>
-    <div class="tab-pane fade" id="t-rep" role="tabpanel"><p class="text-secondary m-0">Los eventos reproductivos aparecerán aquí cuando se construya el módulo de Control reproductivo.</p></div>
-    <div class="tab-pane fade" id="t-pes" role="tabpanel"><p class="text-secondary m-0">Los pesajes aparecerán aquí cuando se construya el módulo de Control productivo.</p></div>
-    <div class="tab-pane fade" id="t-his" role="tabpanel"><p class="text-secondary m-0">El historial completo del animal se arma con los demás módulos.</p></div>
+    <div class="tab-pane fade" id="t-san" role="tabpanel">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h3 class="h6 m-0">Historial sanitario</h3>
+        {% if es_admin %}
+        <a class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" href="{{ url_for('sanitario.nuevo', animal=a.identificacion) }}">{{ icono('plus', 15) }}Registrar evento</a>
+        {% endif %}
+      </div>
+      {% if eventos %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 ca-table">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Próxima dosis</th><th>Observaciones</th></tr></thead>
+          <tbody>
+            {% for e in eventos %}
+            <tr>
+              <td class="text-nowrap">{{ e.fecha_aplicacion|fecha }}</td>
+              <td>{{ e.tipo }}</td>
+              <td>{{ e.producto }}</td>
+              <td class="text-nowrap">{{ e.proxima_dosis|fecha }}</td>
+              <td class="text-secondary">{{ e.observaciones or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if total_eventos > eventos|length %}
+      <p class="small text-secondary mt-2 mb-0">Se muestran los {{ eventos|length }} más recientes de {{ total_eventos }}. <a href="{{ url_for('sanitario.lista', animal=a.identificacion) }}">Ver todos</a></p>
+      {% endif %}
+      {% else %}
+      <p class="text-secondary m-0">Este animal todavía no tiene eventos sanitarios registrados.</p>
+      {% endif %}
+    </div>
+    <div class="tab-pane fade" id="t-rep" role="tabpanel">
+      {% if a.sexo == 'Hembra' %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h3 class="h6 m-0">Historial reproductivo</h3>
+        {% if es_admin %}
+        <a class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" href="{{ url_for('reproductivo.nuevo', animal=a.identificacion) }}">{{ icono('plus', 15) }}Registrar evento</a>
+        {% endif %}
+      </div>
+      {% if reproductivos %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 ca-table">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Observaciones</th></tr></thead>
+          <tbody>
+            {% for e in reproductivos %}
+            <tr>
+              <td class="text-nowrap">{{ e.fecha|fecha }}</td>
+              <td>{{ e.tipo }}</td>
+              <td>{{ e|detalle_repro or '—' }}</td>
+              <td class="text-secondary">{{ e.observaciones or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if total_repro > reproductivos|length %}
+      <p class="small text-secondary mt-2 mb-0">Se muestran los {{ reproductivos|length }} más recientes de {{ total_repro }}. <a href="{{ url_for('reproductivo.lista', animal=a.identificacion) }}">Ver todos</a></p>
+      {% endif %}
+      {% else %}
+      <p class="text-secondary m-0">Esta hembra todavía no tiene eventos reproductivos registrados.</p>
+      {% endif %}
+      {% else %}
+      <p class="text-secondary m-0">Los eventos reproductivos solo se registran a hembras.</p>
+      {% endif %}
+    </div>
+    <div class="tab-pane fade" id="t-pes" role="tabpanel">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h3 class="h6 m-0">Historial de pesajes</h3>
+        {% if es_admin %}
+        <a class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1" href="{{ url_for('productivo.nuevo', animal=a.identificacion) }}">{{ icono('plus', 15) }}Registrar pesaje</a>
+        {% endif %}
+      </div>
+      {% if pesajes %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-0 ca-table">
+          <thead><tr><th>Fecha</th><th>Peso</th><th>Tipo</th><th>Cambio</th><th>GDP</th><th>Observaciones</th></tr></thead>
+          <tbody>
+            {% for p in pesajes %}
+            <tr>
+              <td class="text-nowrap">{{ p.fecha|fecha }}</td>
+              <td>{{ p.peso_kg|kg }}</td>
+              <td>{{ p.tipo_peso or 'Medido' }}</td>
+              <td>{{ p.cambio|cambio_kg }}</td>
+              <td class="text-nowrap">{% if p.gdp is none %}—{% else %}{{ '≈ ' if p.gdp_estimado }}{{ p.gdp }} g/día{% endif %}</td>
+              <td class="text-secondary">{{ p.observaciones or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="small text-secondary mt-2 mb-0">GDP = ganancia diaria de peso respecto al pesaje anterior (≈ si alguno de los dos pesos es estimado).{% if total_pesajes > pesajes|length %} Se muestran los {{ pesajes|length }} más recientes de {{ total_pesajes }}. <a href="{{ url_for('productivo.lista', animal=a.identificacion) }}">Ver todos</a>{% endif %}</p>
+      {% else %}
+      <p class="text-secondary m-0">Este animal todavía no tiene pesajes registrados.</p>
+      {% endif %}
+    </div>
+    <div class="tab-pane fade" id="t-his" role="tabpanel">
+      <h3 class="h6 mb-3">Historial completo</h3>
+      {% set items, total_linea = linea %}
+      <ul class="ca-act">
+        {% for fecha_item, modulo, texto in items %}
+        <li><span><strong>{{ modulo }}</strong> · {{ texto }}</span><time>{{ fecha_item|fecha }}</time></li>
+        {% endfor %}
+      </ul>
+      {% if total_linea > items|length %}<p class="small text-secondary mt-2 mb-0">Se muestran los {{ items|length }} más recientes de {{ total_linea }}.</p>{% endif %}
+    </div>
   </div>
 </section>
 
+{% if es_admin %}
 <div class="modal fade" id="modal-eliminar" tabindex="-1" aria-labelledby="titulo-eliminar" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form class="modal-content" method="post" action="{{ url_for('ganado.eliminar', identificacion=a.identificacion) }}">
@@ -70,7 +182,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        Se borrará el registro de {{ a.nombre or 'este animal' }} y no se puede deshacer. Si solo se vendió o murió, es mejor cambiar su estado con “Editar información”.
+        Se borrará el registro de {{ a.nombre or 'este animal' }} y no se puede deshacer. Si solo se vendió o murió, es mejor cambiar su estado con “Editar información”. Un animal con eventos sanitarios, reproductivos, pesajes, salidas o novedades registrados no se puede eliminar.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -79,4 +191,5 @@
     </form>
   </div>
 </div>
+{% endif %}
 {% endblock %}

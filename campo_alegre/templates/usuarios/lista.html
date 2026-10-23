@@ -1,0 +1,41 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Usuarios{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <div>
+    <h2 class="h4 m-0 ca-title">Usuarios</h2>
+    <p class="text-secondary m-0">Quién puede entrar al sistema y con qué rol.</p>
+  </div>
+  <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('usuarios.nuevo') }}">{{ icono('plus', 16) }}Nuevo usuario</a>
+</div>
+
+<section class="ca-panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 ca-table">
+      <thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>
+        {% for u in filas %}
+        <tr>
+          <td class="text-nowrap">{{ u.usuario }}{% if u.usuario == yo %} <span class="text-secondary">(tú)</span>{% endif %}</td>
+          <td>{{ u.nombre }}</td>
+          <td>{{ u.rol }}</td>
+          <td>{% if u.activo %}<span class="ca-pill ok">Activo</span>{% else %}<span class="ca-pill warn">Inactivo</span>{% endif %}</td>
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('usuarios.editar', usuario=u.usuario) }}">Editar</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('usuarios.clave', usuario=u.usuario) }}">Contraseña</a>
+            {% if u.usuario != yo %}
+            <form class="d-inline" method="post" action="{{ url_for('usuarios.estado', usuario=u.usuario) }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn btn-sm {{ 'btn-outline-danger' if u.activo else 'btn-outline-success' }}" type="submit">{{ 'Desactivar' if u.activo else 'Activar' }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

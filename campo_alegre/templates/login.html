@@ -17,6 +17,12 @@
       <h2 class="text-center h3 m-0 ca-title">Bienvenido</h2>
       <p class="text-center text-secondary m-0">Inicia sesión para continuar</p>
 
+      {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% for categoria, texto in mensajes %}
+        <div class="alert alert-{{ categoria }} m-0" role="alert">{{ texto }}</div>
+        {% endfor %}
+      {% endwith %}
+
       {% if error %}
       <div class="alert alert-danger m-0" role="alert">{{ error }}</div>
       {% endif %}

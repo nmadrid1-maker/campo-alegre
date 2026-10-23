@@ -9,7 +9,15 @@ import sys
 
 from campo_alegre import create_app
 from campo_alegre.db import get_db
-from campo_alegre.semilla import crear_animales_ejemplo, crear_usuarios
+from campo_alegre.semilla import (
+    asignar_potreros_ejemplo,
+    crear_animales_ejemplo,
+    crear_eventos_ejemplo,
+    crear_pesajes_ejemplo,
+    crear_potreros,
+    crear_reproductivos_ejemplo,
+    crear_usuarios,
+)
 
 app = create_app()
 
@@ -21,6 +29,11 @@ with app.app_context():
         os.environ.get("SEED_EMPLEADO_PASSWORD", "Empleado2026!"),
     )
     print("Usuarios creados:", ", ".join(creados) if creados else "ninguno (ya existían)")
+    print("Potreros de la finca creados:", crear_potreros(db))
     if "--solo-usuarios" not in sys.argv:
         print("Animales de ejemplo creados:", crear_animales_ejemplo(db))
+        print("Eventos sanitarios de ejemplo creados:", crear_eventos_ejemplo(db))
+        print("Eventos reproductivos de ejemplo creados:", crear_reproductivos_ejemplo(db))
+        print("Pesajes de ejemplo creados:", crear_pesajes_ejemplo(db))
+        print("Animales de ejemplo ubicados en potreros:", asignar_potreros_ejemplo(db))
     print("Listo. Las contraseñas son las de SEED_*_PASSWORD en tu archivo .env.")

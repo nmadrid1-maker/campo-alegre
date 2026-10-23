@@ -1,0 +1,82 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Potreros{% endblock %}
+
+{% block contenido %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+  <div>
+    <h2 class="h4 m-0 ca-title">Potreros</h2>
+    <p class="text-secondary m-0">Lugares de la finca donde están los animales. {{ filas|length }} potreros · {{ total_animales }} animales activos ubicados.</p>
+  </div>
+  {% if es_admin %}
+  <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('potreros.nuevo') }}">{{ icono('plus', 16) }}Nuevo potrero</a>
+  {% endif %}
+</div>
+
+<section class="ca-panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 ca-table">
+      <thead><tr><th>Nombre</th><th>Animales</th><th>Estado</th><th>Observaciones</th>{% if es_admin %}<th>Acciones</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for p in filas %}
+        <tr>
+          <td class="text-nowrap">{{ p.nombre }}</td>
+          <td>{% if p.animales %}<a href="{{ url_for('ganado.lista', potrero=p.nombre) }}">{{ p.animales }}</a>{% else %}0{% endif %}</td>
+          <td>{% if p.activo %}<span class="ca-pill ok">Activo</span>{% else %}<span class="ca-pill warn">Inactivo</span>{% endif %}</td>
+          <td class="text-secondary">{{ p.observaciones or '—' }}</td>
+          {% if es_admin %}
+          <td class="text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('potreros.editar', potrero_id=p._id|string) }}">Editar</a>
+            <form class="d-inline" method="post" action="{{ url_for('potreros.estado', potrero_id=p._id|string) }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-secondary" type="submit">{{ 'Desactivar' if p.activo else 'Activar' }}</button>
+            </form>
+            <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#modal-eliminar-potrero"
+                    data-accion="{{ url_for('potreros.eliminar', potrero_id=p._id|string) }}" data-resumen="{{ p.nombre }}">Eliminar</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ 5 if es_admin else 4 }}" class="text-center text-secondary py-4">Aún no hay potreros.{% if es_admin %} Usa “Nuevo potrero” para agregar el primero.{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if es_admin %}
+<div class="modal fade" id="modal-eliminar-potrero" tabindex="-1" aria-labelledby="titulo-eliminar-potrero" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" id="form-eliminar-potrero" action="">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="titulo-eliminar-potrero">Eliminar potrero</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        Se borrará el potrero <strong id="resumen-eliminar-potrero"></strong> y no se puede deshacer. Solo se puede eliminar si nunca tuvo animales; si ya no se usa, es mejor desactivarlo.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if es_admin %}<script>
+  (function () {
+    var modal = document.getElementById('modal-eliminar-potrero');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (ev) {
+      var origen = ev.relatedTarget;
+      if (!origen) return;
+      document.getElementById('form-eliminar-potrero').action = origen.getAttribute('data-accion');
+      document.getElementById('resumen-eliminar-potrero').textContent = origen.getAttribute('data-resumen');
+    });
+  })();
+</script>{% endif %}
+{% endblock %}

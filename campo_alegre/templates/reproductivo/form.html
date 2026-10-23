@@ -1,0 +1,157 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Registrar evento reproductivo{% endblock %}
+
+{% macro error(campo) -%}
+  {%- if errores.get(campo) %}<div class="invalid-feedback d-block">{{ errores[campo] }}</div>{% endif -%}
+{%- endmacro %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Registrar evento reproductivo</h2>
+  <p class="text-secondary m-0">Servicios, diagnósticos de preñez, partos y abortos. Solo se registran a hembras activas. Los campos con * son obligatorios.</p>
+</div>
+
+<form class="ca-panel p-3 p-md-4" method="post" novalidate>
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <div class="row g-3">
+    <div class="col-12">
+      <label class="form-label" for="animal">Animal (hembra) *</label>
+      <input class="form-control {{ 'is-invalid' if errores.animal }}" id="animal" name="animal" value="{{ v.animal }}" list="lista-animales" placeholder="Escriba o elija la identificación. Ej: 125" autocomplete="off" maxlength="20" required>
+      <datalist id="lista-animales">
+        {% for a in animales %}<option value="{{ a.identificacion }}" label="{{ a.nombre or 'Sin nombre' }} · {{ a.categoria }}"></option>{% endfor %}
+      </datalist>
+      {{ error('animal') }}
+    </div>
+
+    <div class="col-12">
+      <span class="form-label d-block" id="etiqueta-tipo">Tipo de evento *</span>
+      <div class="d-flex flex-wrap gap-4 py-1" role="radiogroup" aria-labelledby="etiqueta-tipo">
+        {% for t in tipos %}
+        <div class="form-check">
+          <input class="form-check-input tipo-evento {{ 'is-invalid' if errores.tipo }}" type="radio" name="tipo" id="tipo-{{ loop.index }}" value="{{ t }}" {{ 'checked' if v.tipo == t }}>
+          <label class="form-check-label" for="tipo-{{ loop.index }}">{{ t }}</label>
+        </div>
+        {% endfor %}
+      </div>
+      {{ error('tipo') }}
+    </div>
+
+    <div class="col-12 col-md-6">
+      <label class="form-label" for="fecha">Fecha del evento *</label>
+      <input class="form-control {{ 'is-invalid' if errores.fecha }}" id="fecha" name="fecha" type="date" value="{{ v.fecha }}" required>
+      {{ error('fecha') }}
+    </div>
+
+    <div class="col-12 grupo-tipo" data-tipo="Servicio">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="metodo">Método *</label>
+          <select class="form-select {{ 'is-invalid' if errores.metodo }}" id="metodo" name="metodo">
+            {% for m in metodos %}<option value="{{ m }}" {{ 'selected' if v.metodo == m }}>{{ m }}</option>{% endfor %}
+          </select>
+          {{ error('metodo') }}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="reproductor">Reproductor / pajilla (opcional)</label>
+          <input class="form-control {{ 'is-invalid' if errores.reproductor }}" id="reproductor" name="reproductor" value="{{ v.reproductor }}" maxlength="60" placeholder="Ej: Toro 178 o código de la pajilla">
+          {{ error('reproductor') }}
+        </div>
+        <div class="col-12"><div class="form-text">El parto probable se calcula sumando {{ gestacion }} días a la fecha del servicio.</div></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 grupo-tipo" data-tipo="Diagnóstico de preñez" id="grupo-resultado">
+      <label class="form-label" for="resultado">Resultado *</label>
+      <select class="form-select {{ 'is-invalid' if errores.resultado }}" id="resultado" name="resultado">
+        <option value="">Seleccione...</option>
+        {% for r in resultados %}<option value="{{ r }}" {{ 'selected' if v.resultado == r }}>{{ r }}</option>{% endfor %}
+      </select>
+      {{ error('resultado') }}
+    </div>
+
+    <div class="col-12 grupo-tipo" data-tipo="Diagnóstico de preñez" id="grupo-parto">
+      <div class="row g-3">
+        <div class="col-12">
+          <span class="form-label d-block" id="etiqueta-modo">Fecha estimada de parto *</span>
+          <div class="d-flex flex-wrap gap-4 py-1" role="radiogroup" aria-labelledby="etiqueta-modo">
+            {% for m in modos_parto %}
+            <div class="form-check">
+              <input class="form-check-input modo-parto {{ 'is-invalid' if errores.parto_modo }}" type="radio" name="parto_modo" id="modo-{{ loop.index }}" value="{{ m }}" {{ 'checked' if v.parto_modo == m }}>
+              <label class="form-check-label" for="modo-{{ loop.index }}">{{ {'Desde servicio': 'Calcular desde el último servicio', 'Fecha indicada': 'Indicar la fecha', 'Desconocida': 'Desconocida'}[m] }}</label>
+            </div>
+            {% endfor %}
+          </div>
+          {{ error('parto_modo') }}
+        </div>
+        <div class="col-12 col-md-6 d-none" id="campo-parto-fecha">
+          <label class="form-label" for="parto_estimado">Fecha estimada de parto *</label>
+          <input class="form-control {{ 'is-invalid' if errores.parto_estimado }}" id="parto_estimado" name="parto_estimado" type="date" value="{{ v.parto_estimado }}">
+          {{ error('parto_estimado') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 grupo-tipo" data-tipo="Parto">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="cria_estado">Estado de la cría *</label>
+          <select class="form-select {{ 'is-invalid' if errores.cria_estado }}" id="cria_estado" name="cria_estado">
+            <option value="">Seleccione...</option>
+            {% for e in estados %}<option value="{{ e }}" {{ 'selected' if v.cria_estado == e }}>{{ e }}</option>{% endfor %}
+          </select>
+          {{ error('cria_estado') }}
+        </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="cria_sexo">Sexo de la cría (opcional)</label>
+          <select class="form-select {{ 'is-invalid' if errores.cria_sexo }}" id="cria_sexo" name="cria_sexo">
+            <option value="">Sin indicar</option>
+            {% for s in sexos %}<option value="{{ s }}" {{ 'selected' if v.cria_sexo == s }}>{{ s }}</option>{% endfor %}
+          </select>
+          {{ error('cria_sexo') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <label class="form-label" for="observaciones">Observaciones</label>
+      <textarea class="form-control {{ 'is-invalid' if errores.observaciones }}" id="observaciones" name="observaciones" rows="3" maxlength="500" placeholder="Escriba observaciones...">{{ v.observaciones }}</textarea>
+      {{ error('observaciones') }}
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <a class="btn btn-outline-secondary" href="{{ url_for('reproductivo.lista') }}">Cancelar</a>
+    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="submit">{{ icono('save', 16) }}Guardar evento</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var radios = document.querySelectorAll('.tipo-evento');
+    var grupos = document.querySelectorAll('.grupo-tipo');
+    function mostrar() {
+      var actual = document.querySelector('.tipo-evento:checked');
+      var tipo = actual ? actual.value : '';
+      grupos.forEach(function (g) {
+        g.classList.toggle('d-none', g.getAttribute('data-tipo') !== tipo);
+      });
+    }
+    var resultado = document.getElementById('resultado');
+    function mostrarParto() {
+      var tipo = document.querySelector('.tipo-evento:checked');
+      var prenada = tipo && tipo.value === 'Diagnóstico de preñez' && resultado.value === 'Preñada';
+      document.getElementById('grupo-parto').classList.toggle('d-none', !prenada);
+      var modo = document.querySelector('.modo-parto:checked');
+      document.getElementById('campo-parto-fecha').classList.toggle('d-none', !(prenada && modo && modo.value === 'Fecha indicada'));
+    }
+    radios.forEach(function (r) { r.addEventListener('change', function () { mostrar(); mostrarParto(); }); });
+    resultado.addEventListener('change', mostrarParto);
+    document.querySelectorAll('.modo-parto').forEach(function (r) { r.addEventListener('change', mostrarParto); });
+    mostrar();
+    mostrarParto();
+  })();
+</script>
+{% endblock %}

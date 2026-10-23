@@ -2,7 +2,11 @@ from flask import Blueprint, redirect, render_template, session, url_for
 
 from .db import get_db
 from .filtros import fecha_larga
-from .security import ADMIN, EMPLEADO, login_required, rol_required
+from .productivo import pesajes_del_mes
+from .respaldos import aviso_para_inicio
+from .reproductivo import resumen as resumen_reproductivo
+from .sanitario import contar_proximas_dosis
+from .security import ADMIN, login_required
 
 bp = Blueprint("inicio", __name__)
 
@@ -19,67 +23,17 @@ def inicio():
     total = db.animales.count_documents({})
     activos = db.animales.count_documents({"estado": "Activa"})
     actividades = list(db.actividad.find().sort("fecha", -1).limit(5))
+    eventos_repro, partos = resumen_reproductivo()
     return render_template(
         "inicio.html",
         total=total,
         activos=activos,
         actividades=actividades,
+        proximas_vacunas=contar_proximas_dosis(),
+        eventos_repro=eventos_repro,
+        partos_probables=partos,
+        pesajes_mes=pesajes_del_mes(),
         hoy=fecha_larga(),
         es_admin=session["user"]["rol"] == ADMIN,
+        aviso_respaldo=aviso_para_inicio() if session["user"]["rol"] == ADMIN else None,
     )
-
-
-# Secciones que aún no se construyen: muestran una pantalla "en construcción"
-# con lo que va a incluir cada una.
-PENDIENTES = {
-    "sanitario": {
-        "titulo": "Control sanitario",
-        "resumen": "Vacunas, desparasitaciones y tratamientos de cada animal.",
-        "incluira": ["Registrar un evento sanitario", "Historial por animal", "Próximas dosis"],
-        "roles": (ADMIN, EMPLEADO),
-    },
-    "reproductivo": {
-        "titulo": "Control reproductivo",
-        "resumen": "Servicios, partos y crías de cada hembra.",
-        "incluira": ["Registrar inseminación o monta", "Registrar parto y cría", "Fechas probables de parto"],
-        "roles": (ADMIN, EMPLEADO),
-    },
-    "productivo": {
-        "titulo": "Control productivo",
-        "resumen": "Pesajes y producción del hato.",
-        "incluira": ["Registrar pesaje", "Evolución de peso por animal"],
-        "roles": (ADMIN, EMPLEADO),
-    },
-    "informes": {
-        "titulo": "Informes",
-        "resumen": "Informes del hato con filtros por fecha, categoría y estado.",
-        "incluira": ["Inventario de ganado", "Control sanitario", "Eventos reproductivos", "Control productivo"],
-        "roles": (ADMIN,),
-    },
-    "usuarios": {
-        "titulo": "Usuarios",
-        "resumen": "Cuentas del sistema y sus roles.",
-        "incluira": ["Crear y desactivar usuarios", "Asignar rol Administrador o Empleado", "Restablecer contraseña"],
-        "roles": (ADMIN,),
-    },
-    "configuracion": {
-        "titulo": "Configuración",
-        "resumen": "Parámetros generales de la finca.",
-        "incluira": ["Datos de la finca", "Categorías y procedencias disponibles"],
-        "roles": (ADMIN,),
-    },
-}
-
-
-def _crear_vista(clave, datos):
-    @login_required
-    @rol_required(*datos["roles"])
-    def vista():
-        return render_template("pendiente.html", **datos)
-
-    vista.__name__ = clave
-    return vista
-
-
-for _clave, _datos in PENDIENTES.items():
-    bp.add_url_rule(f"/{_clave}", endpoint=_clave, view_func=_crear_vista(_clave, _datos))

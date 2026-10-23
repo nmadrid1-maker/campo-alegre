@@ -1,0 +1,146 @@
+{% extends 'layout.html' %}
+{% from '_iconos.html' import icono %}
+{% block titulo %}Control sanitario{% endblock %}
+
+{% block contenido %}
+<div>
+  <h2 class="h4 m-0 ca-title">Control sanitario</h2>
+  <p class="text-secondary m-0">Vacunas, desparasitaciones y tratamientos de cada animal.</p>
+</div>
+
+<div class="d-flex flex-wrap gap-2">
+  <form class="d-flex flex-grow-1 flex-wrap gap-2" method="get" role="search">
+    {% if animal %}<input type="hidden" name="animal" value="{{ animal }}">{% endif %}
+    <label class="visually-hidden" for="q">Buscar evento</label>
+    <input class="form-control flex-grow-1" style="min-width: 220px; width: auto;" id="q" name="q" value="{{ q }}" placeholder="Buscar por animal o producto...">
+    <label class="visually-hidden" for="tipo">Tipo de evento</label>
+    <select class="form-select w-auto" id="tipo" name="tipo">
+      <option value="">Todos los tipos</option>
+      {% for t in tipos %}<option value="{{ t }}" {{ 'selected' if tipo == t }}>{{ t }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit" aria-label="Buscar">{{ icono('search') }}</button>
+  </form>
+  {% if es_admin %}
+  <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{{ url_for('sanitario.nuevo') }}">{{ icono('plus', 16) }}Registrar evento</a>
+  {% endif %}
+</div>
+
+{% if animal %}
+<div class="alert alert-info mb-0 d-flex flex-wrap justify-content-between gap-2" role="status">
+  <span>Mostrando solo los eventos del animal <strong>{{ animal }}</strong>.</span>
+  <a href="{{ url_for('sanitario.lista') }}">Quitar filtro</a>
+</div>
+{% endif %}
+
+{% if total_proximas %}
+<section class="ca-panel p-3 p-md-4" aria-labelledby="titulo-proximas">
+  <h3 class="h6 mb-3" id="titulo-proximas">Próximas dosis (30 días): {{ total_proximas }}</h3>
+  <ul class="ca-act">
+    {% for e in proximas %}
+    <li>
+      <span><a href="{{ url_for('ganado.ficha', identificacion=e.animal) }}">{{ e.animal }}{% if nombres.get(e.animal) %} · {{ nombres[e.animal] }}{% endif %}</a> · {{ e.tipo }} · {{ e.producto }}</span>
+      <time>{{ e.proxima_dosis|fecha }}</time>
+    </li>
+    {% endfor %}
+  </ul>
+  {% if total_proximas > proximas|length %}
+  <p class="small text-secondary mt-2 mb-0">Se muestran las 5 más cercanas de {{ total_proximas }}.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="ca-panel">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0 ca-table">
+      <thead>
+        <tr><th>Fecha</th><th>Animal</th><th>Tipo</th><th>Producto</th><th>Próxima dosis</th><th>Registró</th>{% if es_admin %}<th>Acciones</th>{% endif %}</tr>
+      </thead>
+      <tbody>
+        {% for e in filas %}
+        <tr>
+          <td class="text-nowrap">{{ e.fecha_aplicacion|fecha }}</td>
+          <td class="text-nowrap"><a href="{{ url_for('ganado.ficha', identificacion=e.animal) }}">{{ e.animal }}</a>{% if nombres.get(e.animal) %} <span class="text-secondary">· {{ nombres[e.animal] }}</span>{% endif %}</td>
+          <td>{{ e.tipo }}</td>
+          <td>{{ e.producto }}</td>
+          <td class="text-nowrap">
+            {% if e.proxima_dosis %}
+              {% if hoy <= e.proxima_dosis <= aviso %}<span class="ca-pill warn">{{ e.proxima_dosis|fecha }}</span>{% else %}{{ e.proxima_dosis|fecha }}{% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-secondary">{{ e.registrado_por or '—' }}</td>
+          {% if es_admin %}
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" type="button"
+                    data-bs-toggle="modal" data-bs-target="#modal-eliminar-evento"
+                    data-accion="{{ url_for('sanitario.eliminar', evento_id=e._id|string) }}"
+                    data-resumen="{{ e.tipo }} · {{ e.producto }} (animal {{ e.animal }}, {{ e.fecha_aplicacion|fecha }})">{{ icono('trash', 15) }}Eliminar</button>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ 7 if es_admin else 6 }}" class="text-center text-secondary py-4">
+          {% if q or tipo or animal %}Ningún evento coincide con los filtros.{% else %}Aún no hay eventos sanitarios. {% if es_admin %}Usa “Registrar evento” para agregar el primero.{% endif %}{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3">
+    <span class="small text-secondary">
+      Mostrando {{ inicio + 1 if total else 0 }} a {{ [inicio + filas|length, total]|min }} de {{ total }} eventos
+    </span>
+    {% if paginas > 1 %}
+    <nav aria-label="Páginas del listado">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {{ 'disabled' if pagina == 1 }}"><a class="page-link" href="{{ url_for('sanitario.lista', page=pagina - 1, q=q or None, tipo=tipo or None, animal=animal or None) }}" aria-label="Página anterior">&laquo;</a></li>
+        {% for n in numeros %}
+          {% if n is none %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% else %}
+          <li class="page-item {{ 'active' if n == pagina }}"><a class="page-link" href="{{ url_for('sanitario.lista', page=n, q=q or None, tipo=tipo or None, animal=animal or None) }}"{% if n == pagina %} aria-current="page"{% endif %}>{{ n }}</a></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {{ 'disabled' if pagina == paginas }}"><a class="page-link" href="{{ url_for('sanitario.lista', page=pagina + 1, q=q or None, tipo=tipo or None, animal=animal or None) }}" aria-label="Página siguiente">&raquo;</a></li>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</section>
+
+{% if es_admin %}
+<div class="modal fade" id="modal-eliminar-evento" tabindex="-1" aria-labelledby="titulo-eliminar-evento" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" method="post" id="form-eliminar-evento" action="">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="titulo-eliminar-evento">Eliminar evento sanitario</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        Se borrará este registro y no se puede deshacer: <strong id="resumen-eliminar-evento"></strong>. Úselo solo para corregir un registro hecho por error.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Eliminar definitivamente</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if es_admin %}<script>
+  (function () {
+    var modal = document.getElementById('modal-eliminar-evento');
+    if (!modal) return;
+    modal.addEventListener('show.bs.modal', function (ev) {
+      var origen = ev.relatedTarget;
+      if (!origen) return;
+      document.getElementById('form-eliminar-evento').action = origen.getAttribute('data-accion');
+      document.getElementById('resumen-eliminar-evento').textContent = origen.getAttribute('data-resumen');
+    });
+  })();
+</script>{% endif %}
+{% endblock %}
