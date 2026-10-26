@@ -6,5 +6,5 @@ __pycache__/
 .idea/
 .vscode/
 *.zip
-respaldos/
+/respaldos/
 errores.log*

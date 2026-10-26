@@ -43,7 +43,7 @@ def registrar_alta(animal, usuario):
 
 def detalle(m):
     if m["tipo"] == "Nacimiento":
-        return f"Madre {m['madre']}"
+        return f"Madre {m['madre']}" if m.get("madre") else (m.get("detalle") or "Madre sin registrar")
     if m["tipo"] == "Salida":
         return m.get("motivo", "") + (f" · {m['detalle']}" if m.get("detalle") else "")
     return m.get("detalle") or ""
