@@ -250,8 +250,3 @@ seed_demo.py      carga o borra los datos de demostración
 
 Lean Software Development con tablero Kanban. Un commit por cambio con sentido, y cada módulo se prueba antes de integrarse.
 
-## Registros oficiales 2024-2025
-
-`datos/registros_ganado_2024_2025.csv` es el cuaderno de movimientos (nacidos, comprados, vendidos, muertes y retiros).
-`py importar_registros.py` muestra una vista previa; `--cargar` hace un respaldo y lo carga como animales individuales
-(IDs `24-N-001`, `24-C-001`, `24-I-001`); `--controles` agrega potreros, vacunas, partos y pesajes de ejemplo a lo ya cargado; `--borrar` quita solo lo cargado por este script.

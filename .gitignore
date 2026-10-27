@@ -8,3 +8,7 @@ __pycache__/
 *.zip
 /respaldos/
 errores.log*
+/datos/
+campo_alegre/oficial.py
+importar_registros.py
+tests/test_oficial.py
